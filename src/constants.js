@@ -15,6 +15,7 @@ export const FEATURES = {
   ROOM: 'room',
   STATUS: 'status',
   FAN: 'fan',
+  SWING: 'swing',
 };
 
 /** Capacités Magellan d'une pièce Takao. */
@@ -25,6 +26,10 @@ export const CAPS = {
   CURRENT_TEMP: 117,
   ROOM_NAME: 154,
   FAN_SPEED: 100800, // 0=auto 1=low 2=med 3=high
+  SWING: 100803, // 0=off 1=on (oscillation), même mapping que homebridge-atlantic
+  TARGET_MIN: 160, // bornes de consigne déclarées par l'appareil
+  TARGET_MAX: 161,
+  TARGET_STEP: 294,
 };
 
 export const MODE_LABELS = {

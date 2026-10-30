@@ -114,10 +114,19 @@ export class MagellanClient {
         const byId = new Map((caps ?? []).map((c) => [Number(c.capabilityId), c]));
         if (byId.has(CAPS.MODE)) {
           const nameCap = byId.get(CAPS.ROOM_NAME);
+          const num = (cap) => Number(byId.get(cap)?.value);
+          const tmin = num(CAPS.TARGET_MIN);
+          const tmax = num(CAPS.TARGET_MAX);
+          const tstep = num(CAPS.TARGET_STEP);
           rooms.push({
             id: candidate.id,
             name: (nameCap && String(nameCap.value).trim()) || candidate.name || `Cozytouch ${candidate.id}`,
             hasFan: byId.has(CAPS.FAN_SPEED),
+            hasSwing: byId.has(CAPS.SWING),
+            targetRange:
+              Number.isFinite(tmin) && Number.isFinite(tmax) && tmax > tmin
+                ? { min: tmin, max: tmax, step: Number.isFinite(tstep) && tstep > 0 ? tstep : 0.5 }
+                : null,
           });
         }
       } catch {

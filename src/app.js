@@ -69,7 +69,14 @@ export class CozytouchApp {
     this.rooms = new Map(rooms.map((r) => [r.id, r]));
     await this.gladys.publishDiscoveredDevices(
       rooms.map((room) =>
-        buildDevice(this.gladys, { roomId: room.id, name: room.name, hasFan: room.hasFan, language: this.cfg.language }),
+        buildDevice(this.gladys, {
+          roomId: room.id,
+          name: room.name,
+          hasFan: room.hasFan,
+          hasSwing: room.hasSwing,
+          targetRange: room.targetRange,
+          language: this.cfg.language,
+        }),
       ),
     );
   }
@@ -132,6 +139,10 @@ export class CozytouchApp {
       const cap = known.mode === 2 ? CAPS.TARGET_COOL : CAPS.TARGET_HEAT;
       await this.client.writeCapability(roomId, cap, t);
       await this.gladys.publishState(ids.feature(FEATURES.TARGET), t);
+    } else if (featureKey === FEATURES.SWING) {
+      const v = Number(value) !== 0 ? 1 : 0;
+      await this.client.writeCapability(roomId, CAPS.SWING, v);
+      await this.gladys.publishState(ids.feature(FEATURES.SWING), v);
     } else if (featureKey === FEATURES.FAN) {
       const v = Number(value);
       if (!Number.isInteger(v) || v < 0 || v > 3) throw new Error('fan speed 0..3');

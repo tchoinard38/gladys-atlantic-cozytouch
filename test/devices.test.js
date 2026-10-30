@@ -49,7 +49,24 @@ test('mode clim : la consigne froide devient la cible', () => {
   assert.equal(r.status, 'Climatisation');
 });
 
-test('fan absent => pas de feature ventilation dans l’état', () => {
+test('swing : cap 100803 -> feature binaire 0/1', () => {
+  const r = readingFromCaps([...salonCaps, { capabilityId: 100803, value: '1' }], 'fr');
+  assert.equal(r.hasSwing, true);
+  assert.equal(r.swing, 1);
+  const states = buildStates(gladys, 27346691, r, 'fr');
+  const swing = states.find((s) => s.device_feature_external_id.endsWith(':swing'));
+  assert.equal(swing.state, 1);
+});
+
+test('bornes de consigne lues des capacités 160/161/294', () => {
+  const r = readingFromCaps(
+    [...salonCaps, { capabilityId: 160, value: '16.0' }, { capabilityId: 161, value: '30.0' }, { capabilityId: 294, value: '0.5' }],
+    'fr',
+  );
+  assert.deepEqual(r.targetRange, { min: 16, max: 30, step: 0.5 });
+});
+
+test("fan absent => pas de feature ventilation dans l'état", () => {
   const r = readingFromCaps(salonCaps.filter((c) => c.capabilityId !== CAPS.FAN_SPEED), 'fr');
   assert.equal(r.fan, null);
   assert.equal(r.hasFan, false);

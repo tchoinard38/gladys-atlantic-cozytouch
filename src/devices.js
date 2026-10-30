@@ -21,7 +21,7 @@ export const idsOf = (gladys, roomId) =>
 const sensor = (feature) => ({ read_only: true, has_feedback: false, keep_history: true, ...feature });
 const command = (feature) => ({ read_only: false, has_feedback: true, keep_history: true, ...feature });
 
-export function buildDevice(gladys, { roomId, name, language, hasFan }) {
+export function buildDevice(gladys, { roomId, name, language, hasFan, hasSwing, targetRange }) {
   const ids = idsOf(gladys, roomId);
   const named = (key, feature) => ({
     name: { fr: FR_FEATURES[key], en: EN_FEATURES[key] }[language],
@@ -59,6 +59,28 @@ export function buildDevice(gladys, { roomId, name, language, hasFan }) {
     named(FEATURES.ROOM, sensor({ category: C.TEMPERATURE_SENSOR, type: T.SENSOR.DECIMAL, unit: U.CELSIUS, min: -30, max: 100 })),
     named(FEATURES.STATUS, sensor({ category: C.TEXT, type: T.TEXT.TEXT, keep_history: false, min: 0, max: 0 })),
   ];
+  const range = targetRange ?? TARGET_RANGE;
+  features.forEach((f) => {
+    if (f.external_id.endsWith(`:${FEATURES.TARGET}`)) {
+      f.min = range.min;
+      f.max = range.max;
+      f.step = range.step;
+    }
+  });
+  if (hasSwing) {
+    features.push(
+      named(
+        FEATURES.SWING,
+        command({
+          category: C.AIR_CONDITIONING,
+          type: T.AIR_CONDITIONING.SWING_VERTICAL,
+          keep_history: false,
+          min: 0,
+          max: 1,
+        }),
+      ),
+    );
+  }
   if (hasFan) {
     features.push(
       named(
@@ -88,6 +110,7 @@ export function buildDevice(gladys, { roomId, name, language, hasFan }) {
 
 const FR_FEATURES = {
   power: 'Marche / arrêt',
+  swing: 'Oscillation',
   mode: 'Mode',
   target: 'Température de consigne',
   room: 'Température ambiante',
@@ -96,6 +119,7 @@ const FR_FEATURES = {
 };
 const EN_FEATURES = {
   power: 'On/Off',
+  swing: 'Swing',
   mode: 'Mode',
   target: 'Target temperature',
   room: 'Room temperature',
@@ -113,7 +137,15 @@ export function readingFromCaps(capsList, language) {
   const room = caps.has(CAPS.CURRENT_TEMP) ? Number(caps.get(CAPS.CURRENT_TEMP)) : null;
   const fan = caps.has(CAPS.FAN_SPEED) ? Number(caps.get(CAPS.FAN_SPEED)) : null;
   const status = mode === null ? null : (MODE_LABELS[mode]?.[language] ?? `${mode}`);
-  return { mode, target, room, fan, status, hasFan: caps.has(CAPS.FAN_SPEED) };
+  const swing = caps.has(CAPS.SWING) ? Number(caps.get(CAPS.SWING)) : null;
+  const tmin = Number(caps.get(CAPS.TARGET_MIN));
+  const tmax = Number(caps.get(CAPS.TARGET_MAX));
+  const tstep = Number(caps.get(CAPS.TARGET_STEP));
+  const targetRange =
+    Number.isFinite(tmin) && Number.isFinite(tmax) && tmax > tmin
+      ? { min: tmin, max: tmax, step: Number.isFinite(tstep) && tstep > 0 ? tstep : 0.5 }
+      : null;
+  return { mode, target, room, fan, swing, status, hasFan: caps.has(CAPS.FAN_SPEED), hasSwing: caps.has(CAPS.SWING), targetRange };
 }
 
 export function buildStates(gladys, roomId, reading, language) {
@@ -133,6 +165,9 @@ export function buildStates(gladys, roomId, reading, language) {
   }
   if (reading.fan !== null) {
     states.push({ device_feature_external_id: ids.feature(FEATURES.FAN), text: String(reading.fan) });
+  }
+  if (reading.swing !== null) {
+    states.push({ device_feature_external_id: ids.feature(FEATURES.SWING), state: reading.swing });
   }
   return states;
 }
