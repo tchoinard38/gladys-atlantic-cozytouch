@@ -5,7 +5,7 @@ import { logger } from '@gladysassistant/integration-sdk';
 import { MagellanClient } from './api.js';
 import { normalizeConfig } from './config.js';
 import { buildDevice, buildStates, idsOf, readingFromCaps } from './devices.js';
-import { CAPS, DEVICE_TYPE, FEATURES, MODE_LABELS, TIMINGS } from './constants.js';
+import { BINARY_MODES, CAPS, DEVICE_TYPE, FEATURES, MODE_LABELS, TIMINGS } from './constants.js';
 
 export class CozytouchApp {
   constructor({ gladys }) {
@@ -74,6 +74,8 @@ export class CozytouchApp {
           name: room.name,
           hasFan: room.hasFan,
           hasSwing: room.hasSwing,
+          hasTargetCool: room.hasTargetCool,
+          binaryModes: room.binaryModes,
           targetRange: room.targetRange,
           language: this.cfg.language,
         }),
@@ -148,8 +150,17 @@ export class CozytouchApp {
       if (!Number.isInteger(v) || v < 0 || v > 3) throw new Error('fan speed 0..3');
       await this.client.writeCapability(roomId, CAPS.FAN_SPEED, v);
       await this.gladys.publishState(feature.external_id, { text: String(v) });
+    } else if (featureKey === FEATURES.TARGET_COOL) {
+      const t = Number(value);
+      if (!Number.isFinite(t)) throw new Error('invalid target');
+      await this.client.writeCapability(roomId, CAPS.TARGET_COOL, t);
+      await this.gladys.publishState(ids.feature(FEATURES.TARGET_COOL), t);
     } else {
-      throw new Error(`unknown feature ${featureKey}`);
+      const mode = BINARY_MODES.find((m) => m.key === featureKey);
+      if (!mode) throw new Error(`unknown feature ${featureKey}`);
+      const v = Number(value) !== 0 ? 1 : 0;
+      await this.client.writeCapability(roomId, mode.cap, v);
+      await this.gladys.publishState(ids.feature(featureKey), v);
     }
     setTimeout(() => this.refreshAll().catch(() => {}), TIMINGS.refreshAfterCommand);
   }

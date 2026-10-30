@@ -12,10 +12,16 @@ export const FEATURES = {
   POWER: 'power',
   MODE: 'mode',
   TARGET: 'target',
+  TARGET_COOL: 'target_cool',
   ROOM: 'room',
   STATUS: 'status',
   FAN: 'fan',
   SWING: 'swing',
+  ECO: 'eco',
+  BOOST: 'boost',
+  SILENCE: 'silence',
+  PRESENCE: 'presence',
+  PROG: 'prog',
 };
 
 /** Capacités Magellan d'une pièce Takao. */
@@ -30,7 +36,21 @@ export const CAPS = {
   TARGET_MIN: 160, // bornes de consigne déclarées par l'appareil
   TARGET_MAX: 161,
   TARGET_STEP: 294,
+  PROG: 184, // programme hebdo on/off
+  BOOST: 100505, // mode puissance (boost)
+  PRESENCE: 100506, // présence/absence
+  ECO: 100507, // mode eco
+  SILENCE: 100802, // mode silence
 };
+
+/** Modes binaires on/off (mêmes capacités que les switchs Home Assistant). */
+export const BINARY_MODES = [
+  { key: 'eco', cap: CAPS.ECO },
+  { key: 'boost', cap: CAPS.BOOST },
+  { key: 'silence', cap: CAPS.SILENCE },
+  { key: 'presence', cap: CAPS.PRESENCE },
+  { key: 'prog', cap: CAPS.PROG },
+];
 
 export const MODE_LABELS = {
   0: { fr: 'Arrêt', en: 'Off' },

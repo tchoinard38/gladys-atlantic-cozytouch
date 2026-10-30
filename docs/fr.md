@@ -1,5 +1,11 @@
 # Atlantic Cozytouch — intégration Gladys Assistant (non officielle)
 
+
+### Modes pilotables
+
+En plus du mode, de la consigne (chaud et froid) et de l'oscillation :
+mode eco, mode puissance (boost), mode silence, présence/absence et
+programme horaire — les mêmes capacités que l'intégration Home Assistant.
 Cette intégration amène dans Gladys Assistant les climatisations et pompes à
 chaleur Atlantic pilotées par **Cozytouch** (Takao M3, et les autres
 équipements connectés de la gamme Atlantic).

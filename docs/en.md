@@ -1,5 +1,11 @@
 # Atlantic Cozytouch — Gladys Assistant integration (unofficial)
 
+
+### Controllable modes
+
+Besides mode, target (heat and cool) and swing: eco, boost, silence,
+presence/away and weekly program — the same capabilities as the Home Assistant
+integration.
 This integration brings Atlantic air conditioners and heat pumps controlled
 by **Cozytouch** (Takao M3 and other connected Atlantic equipment) into
 Gladys Assistant.

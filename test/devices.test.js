@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { normalizeConfig } from '../src/config.js';
-import { readingFromCaps, buildStates } from '../src/devices.js';
+import { readingFromCaps, buildStates, buildDevice } from '../src/devices.js';
 import { CAPS } from '../src/constants.js';
 
 const gladys = {
@@ -70,4 +70,42 @@ test("fan absent => pas de feature ventilation dans l'état", () => {
   const r = readingFromCaps(salonCaps.filter((c) => c.capabilityId !== CAPS.FAN_SPEED), 'fr');
   assert.equal(r.fan, null);
   assert.equal(r.hasFan, false);
+});
+
+const modeCaps = [
+  { capabilityId: 184, value: '0' },
+  { capabilityId: 100505, value: '0' },
+  { capabilityId: 100506, value: '0' },
+  { capabilityId: 100507, value: '1' },
+  { capabilityId: 100802, value: '0' },
+];
+
+test('modes binaires eco/boost/silence/presence/prog lus et poussés', () => {
+  const r = readingFromCaps([...salonCaps, ...modeCaps], 'fr');
+  assert.equal(r.binaryModes.eco, 1);
+  assert.equal(r.binaryModes.prog, 0);
+  const states = buildStates(gladys, 27346691, r, 'fr');
+  const byId = Object.fromEntries(states.map((s) => [s.device_feature_external_id.split(':').pop(), s.state]));
+  assert.equal(byId.eco, 1);
+  assert.equal(byId.silence, 0);
+  assert.equal(byId.presence, 0);
+});
+
+test('consigne climatisation (cap 177) exposée même mode chaud', () => {
+  const r = readingFromCaps(salonCaps, 'fr');
+  assert.equal(r.targetCool, 22.5);
+  assert.equal(r.target, 23.5);
+});
+
+test('buildDevice avec modes binaires => features switch', () => {
+  const d = buildDevice(gladys, {
+    roomId: 27346691, name: 'Salon', language: 'fr',
+    hasFan: true, hasSwing: true, hasTargetCool: true,
+    binaryModes: ['eco', 'boost', 'silence', 'presence', 'prog'],
+    targetRange: { min: 16, max: 30, step: 0.5 },
+  });
+  const keys = d.features.map((f) => f.external_id.split(':').pop());
+  for (const k of ['eco', 'boost', 'silence', 'presence', 'prog', 'target_cool']) {
+    assert.ok(keys.includes(k), `feature ${k} manquante`);
+  }
 });

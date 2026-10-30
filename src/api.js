@@ -3,7 +3,7 @@
 // Identifiants publics de l'application Atlantic (Basic Base64), les mêmes
 // que l'app officielle Cozytouch.
 
-import { CAPS, TIMINGS } from './constants.js';
+import { BINARY_MODES, CAPS, TIMINGS } from './constants.js';
 
 export const ATL_BASE = 'https://apis.groupe-atlantic.com';
 const GATEWAY_AUTH = 'Basic Q3RfMUpWeVRtSUxYOEllZkE3YVVOQmpGblpVYToyRWNORHpfZHkzNDJVSnFvMlo3cFNKTnZVdjBh';
@@ -123,6 +123,8 @@ export class MagellanClient {
             name: (nameCap && String(nameCap.value).trim()) || candidate.name || `Cozytouch ${candidate.id}`,
             hasFan: byId.has(CAPS.FAN_SPEED),
             hasSwing: byId.has(CAPS.SWING),
+            hasTargetCool: byId.has(CAPS.TARGET_COOL),
+            binaryModes: BINARY_MODES.filter((m) => byId.has(m.cap)).map((m) => m.key),
             targetRange:
               Number.isFinite(tmin) && Number.isFinite(tmax) && tmax > tmin
                 ? { min: tmin, max: tmax, step: Number.isFinite(tstep) && tstep > 0 ? tstep : 0.5 }

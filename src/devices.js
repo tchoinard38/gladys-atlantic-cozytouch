@@ -6,6 +6,7 @@ import {
   DEVICE_FEATURE_UNITS as U,
 } from '@gladysassistant/integration-sdk';
 import {
+  BINARY_MODES,
   CAPS,
   DEVICE_TYPE,
   FEATURES,
@@ -21,7 +22,7 @@ export const idsOf = (gladys, roomId) =>
 const sensor = (feature) => ({ read_only: true, has_feedback: false, keep_history: true, ...feature });
 const command = (feature) => ({ read_only: false, has_feedback: true, keep_history: true, ...feature });
 
-export function buildDevice(gladys, { roomId, name, language, hasFan, hasSwing, targetRange }) {
+export function buildDevice(gladys, { roomId, name, language, hasFan, hasSwing, hasTargetCool, binaryModes = [], targetRange }) {
   const ids = idsOf(gladys, roomId);
   const named = (key, feature) => ({
     name: { fr: FR_FEATURES[key], en: EN_FEATURES[key] }[language],
@@ -67,6 +68,37 @@ export function buildDevice(gladys, { roomId, name, language, hasFan, hasSwing, 
       f.step = range.step;
     }
   });
+  if (hasTargetCool) {
+    const range = targetRange ?? TARGET_RANGE;
+    features.push(
+      named(
+        FEATURES.TARGET_COOL,
+        command({
+          category: C.AIR_CONDITIONING,
+          type: T.AIR_CONDITIONING.TARGET_TEMPERATURE,
+          name: { fr: FR_FEATURES[FEATURES.TARGET_COOL], en: EN_FEATURES[FEATURES.TARGET_COOL] }[language],
+          unit: U.CELSIUS,
+          min: range.min,
+          max: range.max,
+          step: range.step,
+        }),
+      ),
+    );
+  }
+  for (const key of binaryModes) {
+    features.push(
+      named(
+        key,
+        command({
+          category: C.SWITCH,
+          type: T.SENSOR.BINARY,
+          keep_history: false,
+          min: 0,
+          max: 1,
+        }),
+      ),
+    );
+  }
   if (hasSwing) {
     features.push(
       named(
@@ -113,18 +145,30 @@ const FR_FEATURES = {
   swing: 'Oscillation',
   mode: 'Mode',
   target: 'Température de consigne',
+  target_cool: 'Consigne climatisation',
   room: 'Température ambiante',
   status: 'État',
   fan: 'Vitesse de ventilation',
+  eco: 'Mode eco',
+  boost: 'Mode puissance',
+  silence: 'Mode silence',
+  presence: 'Présence / absence',
+  prog: 'Programme horaire',
 };
 const EN_FEATURES = {
   power: 'On/Off',
   swing: 'Swing',
   mode: 'Mode',
   target: 'Target temperature',
+  target_cool: 'Cooling target temperature',
   room: 'Room temperature',
   status: 'State',
   fan: 'Fan speed',
+  eco: 'Eco mode',
+  boost: 'Boost mode',
+  silence: 'Silence mode',
+  presence: 'Presence/away',
+  prog: 'Weekly program',
 };
 
 /** Caps Magellan -> valeurs normalisées. */
@@ -138,6 +182,11 @@ export function readingFromCaps(capsList, language) {
   const fan = caps.has(CAPS.FAN_SPEED) ? Number(caps.get(CAPS.FAN_SPEED)) : null;
   const status = mode === null ? null : (MODE_LABELS[mode]?.[language] ?? `${mode}`);
   const swing = caps.has(CAPS.SWING) ? Number(caps.get(CAPS.SWING)) : null;
+  const targetCool = caps.has(CAPS.TARGET_COOL) ? Number(caps.get(CAPS.TARGET_COOL)) : null;
+  const binaryModes = {};
+  for (const m of BINARY_MODES) {
+    if (caps.has(m.cap)) binaryModes[m.key] = Number(caps.get(m.cap)) !== 0 ? 1 : 0;
+  }
   const tmin = Number(caps.get(CAPS.TARGET_MIN));
   const tmax = Number(caps.get(CAPS.TARGET_MAX));
   const tstep = Number(caps.get(CAPS.TARGET_STEP));
@@ -145,7 +194,7 @@ export function readingFromCaps(capsList, language) {
     Number.isFinite(tmin) && Number.isFinite(tmax) && tmax > tmin
       ? { min: tmin, max: tmax, step: Number.isFinite(tstep) && tstep > 0 ? tstep : 0.5 }
       : null;
-  return { mode, target, room, fan, swing, status, hasFan: caps.has(CAPS.FAN_SPEED), hasSwing: caps.has(CAPS.SWING), targetRange };
+  return { mode, target, targetCool, room, fan, swing, status, binaryModes, hasFan: caps.has(CAPS.FAN_SPEED), hasSwing: caps.has(CAPS.SWING), targetRange };
 }
 
 export function buildStates(gladys, roomId, reading, language) {
@@ -168,6 +217,10 @@ export function buildStates(gladys, roomId, reading, language) {
   }
   if (reading.swing !== null) {
     states.push({ device_feature_external_id: ids.feature(FEATURES.SWING), state: reading.swing });
+  }
+  push(FEATURES.TARGET_COOL, reading.targetCool);
+  for (const [key, value] of Object.entries(reading.binaryModes ?? {})) {
+    push(key, value);
   }
   return states;
 }

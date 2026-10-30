@@ -6,17 +6,24 @@
     "en": "Control Atlantic Cozytouch air conditioners and heat pumps (Takao M3) in Gladys Assistant.",
     "fr": "Pilotez vos clims et PAC Atlantic Cozytouch (Takao M3) dans Gladys Assistant."
   },
-  "version": "1.1.0",
-  "docker_image": "ghcr.io/tchoinard38/gladys-atlantic-cozytouch:1.1.0",
+  "version": "1.2.0",
+  "docker_image": "ghcr.io/tchoinard38/gladys-atlantic-cozytouch:1.2.0",
   "gladys_version": ">=5.1.0",
   "cover_image": "https://raw.githubusercontent.com/tchoinard38/gladys-atlantic-cozytouch/main/cover.png",
-  "categories": ["climate"],
-  "transports": ["cloud"],
+  "categories": [
+    "climate"
+  ],
+  "transports": [
+    "cloud"
+  ],
   "config_schema": [
     {
       "key": "intro",
       "type": "section",
-      "label": { "en": "Getting started", "fr": "Pour commencer" },
+      "label": {
+        "en": "Getting started",
+        "fr": "Pour commencer"
+      },
       "description": {
         "en": "Use the e-mail and password of your Cozytouch account (the same as the Atlantic Cozytouch app). The integration talks to the Atlantic Magellan cloud, exactly like the official app. Unofficial integration, no affiliation with Atlantic.",
         "fr": "Utilisez l'e-mail et le mot de passe de votre compte Cozytouch (les mêmes que l'application Atlantic Cozytouch). L'intégration parle au cloud Atlantic Magellan, comme le fait l'application officielle. Intégration non officielle, sans lien avec Atlantic."
@@ -24,27 +31,42 @@
       "links": [
         {
           "url": "https://www.groupe-atlantic.com/fr/fr/our-services/cozytouch-connected-solutions.html",
-          "label": { "en": "Atlantic Cozytouch", "fr": "Atlantic Cozytouch" }
+          "label": {
+            "en": "Atlantic Cozytouch",
+            "fr": "Atlantic Cozytouch"
+          }
         }
       ]
     },
     {
       "key": "email",
       "type": "string",
-      "label": { "en": "Cozytouch e-mail", "fr": "E-mail Cozytouch" },
+      "label": {
+        "en": "Cozytouch e-mail",
+        "fr": "E-mail Cozytouch"
+      },
       "required": true,
-      "placeholder": { "en": "you@example.com", "fr": "vous@exemple.fr" }
+      "placeholder": {
+        "en": "you@example.com",
+        "fr": "vous@exemple.fr"
+      }
     },
     {
       "key": "password",
       "type": "secret",
-      "label": { "en": "Cozytouch password", "fr": "Mot de passe Cozytouch" },
+      "label": {
+        "en": "Cozytouch password",
+        "fr": "Mot de passe Cozytouch"
+      },
       "required": true
     },
     {
       "key": "room_id",
       "type": "number",
-      "label": { "en": "Room id (optional)", "fr": "ID de pièce (facultatif)" },
+      "label": {
+        "en": "Room id (optional)",
+        "fr": "ID de pièce (facultatif)"
+      },
       "description": {
         "en": "Leave empty for automatic discovery. If a room is missing, find its numeric id in the Cozytouch app (magellan deviceId) and enter it here.",
         "fr": "Laissez vide pour la découverte automatique. Si une pièce manque, retrouvez son id numérique dans l'application Cozytouch (deviceId magellan) et saisissez-le ici."
@@ -54,18 +76,36 @@
     {
       "key": "language",
       "type": "select",
-      "label": { "en": "Labels language", "fr": "Langue des libellés" },
+      "label": {
+        "en": "Labels language",
+        "fr": "Langue des libellés"
+      },
       "required": false,
       "default": "fr",
       "options": [
-        { "value": "fr", "label": { "en": "French", "fr": "Français" } },
-        { "value": "en", "label": { "en": "English", "fr": "Anglais" } }
+        {
+          "value": "fr",
+          "label": {
+            "en": "French",
+            "fr": "Français"
+          }
+        },
+        {
+          "value": "en",
+          "label": {
+            "en": "English",
+            "fr": "Anglais"
+          }
+        }
       ]
     },
     {
       "key": "refresh_interval",
       "type": "number",
-      "label": { "en": "Refresh interval (s)", "fr": "Intervalle de rafraîchissement (s)" },
+      "label": {
+        "en": "Refresh interval (s)",
+        "fr": "Intervalle de rafraîchissement (s)"
+      },
       "description": {
         "en": "How often the rooms are read, in seconds (one minute minimum, to stay courteous with the Atlantic cloud).",
         "fr": "Fréquence de lecture des pièces, en secondes (une minute minimum, pour rester courtois avec le cloud Atlantic)."
@@ -79,7 +119,10 @@
   "actions": [
     {
       "key": "test_connection",
-      "label": { "en": "Test the connection", "fr": "Tester la connexion" },
+      "label": {
+        "en": "Test the connection",
+        "fr": "Tester la connexion"
+      },
       "timeout_seconds": 60
     }
   ]
