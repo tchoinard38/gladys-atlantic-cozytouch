@@ -26,8 +26,18 @@ export class CozytouchApp {
     }
     this.client = new MagellanClient({ email: this.cfg.email, password: this.cfg.password, logger });
     if (force) this.client.token = null;
+    // Les appareils déjà créés par l'utilisateur survivent au redémarrage du
+    // conteneur : on re-remplit la liste surveillée depuis Gladys.
+    try {
+      for (const d of await this.gladys.getDevices()) {
+        if (String(d.external_id).includes(`:${DEVICE_TYPE}:`)) this.watched.add(d.external_id);
+      }
+    } catch (err) {
+      logger?.warn?.('getDevices failed', err.message);
+    }
     await this.setStatus(true);
     this.schedule();
+    this.refreshAll().catch((err) => logger.warn('first refresh failed', err.message));
   }
 
   stop() {
