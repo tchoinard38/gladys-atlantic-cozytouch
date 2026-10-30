@@ -58,7 +58,9 @@ export class CozytouchApp {
     if (!rooms.length) throw new Error('no controllable Cozytouch room found (check the room id in the configuration)');
     this.rooms = new Map(rooms.map((r) => [r.id, r]));
     await this.gladys.publishDiscoveredDevices(
-      rooms.map((room) => buildDevice(this.gladys, { ...room, language: this.cfg.language })),
+      rooms.map((room) =>
+        buildDevice(this.gladys, { roomId: room.id, name: room.name, hasFan: room.hasFan, language: this.cfg.language }),
+      ),
     );
   }
 
